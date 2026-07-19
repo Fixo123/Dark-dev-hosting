@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DARK DEV OFC • Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+    <style>
+        /* ===== GLOBAL ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #f1f1f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background-image: radial-gradient(ellipse at 20% 50%, rgba(139,0,0,0.1) 0%, transparent 60%);
+        }
+        .admin-container {
+            max-width: 1200px;
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        }
+
+        /* ===== LOGIN FORM ===== */
+        .login-form {
+            max-width: 400px;
+            margin: 2rem auto;
+            text-align: center;
+        }
+        .login-form .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+        .login-form .logo i { color: #ff0000; }
+        .login-form .logo span {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .login-form .sub { color: #8b8ba8; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .login-form input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 0.75rem;
+            color: #f1f1f9;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+        .login-form input:focus { border-color: #ff0000; }
+        .login-form .btn {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: #fff;
+        }
+        .login-form .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,0,0,0.3); }
+        .login-form .error {
+            color: #ef4444;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* ===== ADMIN CONTENT ===== */
+        .admin-content { display: none; }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .admin-header h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+        }
+        .admin-header h1 i { color: #ff0000; }
+        .admin-header .logout-btn {
+            background: none;
+            border: 1px solid #1a1a1a;
+            color: #8b8ba8;
+            padding: 0.4rem 1.2rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .admin-header .logout-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 1rem;
+            padding: 1.2rem 1.5rem;
+        }
+        .stat-card .number { font-size: 2rem; font-weight: 800; }
+        .stat-card .label { color: #8b8ba8; font-size: 0.75rem; text-transform: uppercase; }
+
+        .table-container {
+            overflow-x: auto;
+            background: #0a0a0a;
+            border-radius: 1rem;
+            border: 1px solid #1a1a1a;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; }
+        th { color: #8b8ba8; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; border-bottom: 1px solid #1a1a1a; }
+        td { border-bottom: 1px solid rgba(26,26,26,0.3); }
+        tr:hover td { background: rgba(255,0,0,0.03); }
+        .status-badge {
+            padding: 0.15rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+        .status-badge.active { background: rgba(16,185,129,0.15); color: #10b981; }
+        .status-badge.building { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .status-badge.failed { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+        .footer-dev {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #1a1a1a;
+            color: #5a5a7a;
+            font-size: 0.8rem;
+        }
+        .footer-dev span { color: #ff0000; font-weight: 700; }
+
+        @media (max-width: 768px) {
+            .admin-container { padding: 1rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container" id="adminContainer">
+
+        <!-- ===== LOGIN FORM ===== -->
+        <div class="login-form" id="loginForm">
+            <div class="logo">
+                <i class="fas fa-skull"></i>
+                <span>DARK</span><span style="-webkit-text-fill-color:#f1f1f9;">DEV</span>
+            </div>
+            <div class="sub">🔐 Admin Panel • Enter Password</div>
+            <input type="password" id="adminPassword" placeholder="Enter admin password..." />
+            <button class="btn" id="loginBtn"><i class="fas fa-lock"></i> Login</button>
+            <div class="error" id="loginError">❌ Invalid password. Please try again.</div>
+        </div>
+
+        <!-- ===== ADMIN CONTENT ===== -->
+        <div class="admin-content" id="adminContent">
+
+            <div class="admin-header">
+                <h1><i class="fas fa-shield-alt"></i> Admin Panel</h1>
+                <button class="logout-btn" id="logoutAdminBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card"><div class="number">24</div><div class="label">Total Users</div></div>
+                <div class="stat-card"><div class="number">18</div><div class="label">Active Sites</div></div>
+                <div class="stat-card"><div class="number">42</div><div class="label">Total Deployments</div></div>
+                <div class="stat-card"><div class="number">7</div><div class="label">Databases</div></div>
+            </div>
+
+            <!-- Users Table -->
+            <h3 style="margin:1.5rem 0 0.5rem;font-size:0.9rem;color:#8b8ba8;"><i class="fas fa-users"></i> Users</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>User</th><th>Email</th><th>Sites</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Fixo Dev</td><td>fixo@darkdev.com</td><td>5</td><td><span class="status-badge active">Active</span></td></tr>
+                        <tr><td>John Doe</td><td>john@example.com</td><td>3</td><td><span class="status-badge active">Active</span></td></tr>
+                        <tr><td>Jane Smith</td><td>jane@example.com</td><td>2</td><td><span class="status-badge building">Building</span></td></tr>
+                        <tr><td>Dark User</td><td>dark@example.com</td><td>1</td><td><span class="status-badge failed">Failed</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Deployments Table -->
+            <h3 style="margin:1.5rem 0 0.5rem;font-size:0.9rem;color:#8b8ba8;"><i class="fas fa-code-branch"></i> Recent Deployments</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Site</th><th>User</th><th>Branch</th><th>Status</th><th>URL</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>my-portfolio</td><td>Fixo Dev</td><td>main</td><td><span class="status-badge active">Active</span></td><td style="color:#8b8ba8;">my-portfolio.pages.dev</td></tr>
+                        <tr><td>ai-bot-api</td><td>John Doe</td><td>dev</td><td><span class="status-badge building">Building</span></td><td style="color:#8b8ba8;">ai-bot-api.pages.dev</td></tr>
+                        <tr><td>ecommerce-store</td><td>Jane Smith</td><td>main</td><td><span class="status-badge active">Active</span></td><td style="color:#8b8ba8;">ecommerce-store.pages.dev</td></tr>
+                        <tr><td>blog-platform</td><td>Dark User</td><td>main</td><td><span class="status-badge failed">Failed</span></td><td style="color:#8b8ba8;">blog-platform.pages.dev</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- System Info -->
+            <div style="margin-top:1.5rem;padding:1rem;background:#0a0a0a;border-radius:0.75rem;border:1px solid #1a1a1a;font-size:0.8rem;color:#5a5a7a;">
+                <p><strong style="color:#8b8ba8;">System:</strong> DARK DEV OFC v4.0</p>
+                <p><strong style="color:#8b8ba8;">Uptime:</strong> 99.99%</p>
+                <p><strong style="color:#8b8ba8;">Powered by:</strong> Cloudflare Pages + D1</p>
+            </div>
+
+            <div class="footer-dev">
+                Developed by <span>FIXO DEV</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        (function() {
+            'use strict';
+
+            const ADMIN_PASSWORD = 'dark1234#@$';
+            const loginForm = document.getElementById('loginForm');
+            const adminContent = document.getElementById('adminContent');
+            const adminContainer = document.getElementById('adminContainer');
+            const passwordInput = document.getElementById('adminPassword');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginError = document.getElementById('loginError');
+            const logoutBtn = document.getElementById('logoutAdminBtn');
+
+            // Check session
+            if (sessionStorage.getItem('dark_admin') === 'true') {
+                loginForm.style.display = 'none';
+                adminContent.style.display = 'block';
+            }
+
+            // Login
+            loginBtn.addEventListener('click', function() {
+                const password = passwordInput.value;
+                if (password === ADMIN_PASSWORD) {
+                    sessionStorage.setItem('dark_admin', 'true');
+                    loginForm.style.display = 'none';
+                    adminContent.style.display = 'block';
+                    loginError.style.display = 'none';
+                } else {
+                    loginError.style.display = 'block';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            });
+
+            // Enter key
+            passwordInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') loginBtn.click();
+            });
+
+            // Logout
+            logoutBtn.addEventListener('click', function() {
+                sessionStorage.removeItem('dark_admin');
+                loginForm.style.display = 'block';
+                adminContent.style.display = 'none';
+                passwordInput.value = '';
+                loginError.style.display = 'none';
+            });
+
+        })();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+# SPA Routing - Always serve index.html
+/*    /index.html    200
+
+# Dashboard
+/dashboard.html    /dashboard.html    200
+
+# Admin Panel
+/admin.html    /admin.html    200
+
+# API Routes
+/api/*    /functions/api/*    200

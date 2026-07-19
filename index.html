@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DARK DEV OFC • Free Website Hosting</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+    <style>
+        /* ===== GLOBAL ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #f1f1f9;
+            min-height: 100vh;
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(ellipse at 20% 50%, rgba(139, 0, 0, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(200, 0, 0, 0.05) 0%, transparent 50%);
+            overflow-x: hidden;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+        /* ============================================================
+                   LOADING SCREEN
+                   ============================================================ */
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        #loadingScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #ff0000;
+            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+
+        .loader-ring:nth-child(2) {
+            width: 80%;
+            height: 80%;
+            border-top-color: #cc0000;
+            animation-duration: 1.5s;
+            animation-direction: reverse;
+        }
+
+        .loader-ring:nth-child(3) {
+            width: 60%;
+            height: 60%;
+            border-top-color: #ff4444;
+            animation-duration: 1.8s;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            z-index: 1;
+            animation: pulse-logo 1.5s ease-in-out infinite;
+        }
+        .loader-logo i { color: #ff0000; }
+        .loader-logo span {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes pulse-logo {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.7; }
+        }
+
+        .loader-bar {
+            margin-top: 2rem;
+            width: 200px;
+            height: 3px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loader-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff0000, #cc0000);
+            border-radius: 10px;
+            animation: fill-bar 2.5s ease-in-out forwards;
+        }
+
+        @keyframes fill-bar {
+            0% { width: 0%; }
+            50% { width: 60%; }
+            80% { width: 85%; }
+            100% { width: 100%; }
+        }
+
+        .loader-text {
+            color: #5a5a7a;
+            font-size: 0.8rem;
+            margin-top: 0.8rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            animation: blink-text 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink-text {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* ============================================================
+                   NAVBAR
+                   ============================================================ */
+        .navbar {
+            padding: 1rem 0;
+            border-bottom: 1px solid #1a1a1a;
+            background: rgba(10, 10, 10, 0.92);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 0.8s ease forwards;
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        @keyframes slideDown {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.6rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logo i { color: #ff0000; text-shadow: 0 0 20px rgba(255,0,0,0.3); }
+        .logo span {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .logo .badge {
+            font-size: 0.5rem;
+            background: rgba(255,0,0,0.15);
+            color: #ff0000;
+            padding: 0.1rem 0.6rem;
+            border-radius: 9999px;
+            font-family: 'Inter', sans-serif;
+            -webkit-text-fill-color: initial;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: #8b8ba8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s, transform 0.3s;
+            position: relative;
+        }
+        .nav-links a:hover { color: #ff0000; transform: translateY(-2px); }
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: rotate(45deg) translateX(-100%);
+            transition: transform 0.6s;
+        }
+        .btn-primary:hover::before {
+            transform: rotate(45deg) translateX(100%);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255,0,0,0.3);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #1a1a1a;
+            color: #8b8ba8;
+        }
+        .btn-outline:hover {
+            border-color: #ff0000;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            padding: 4rem 0 3rem;
+            text-align: center;
+            animation: fadeUp 1s ease 0.5s both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glow-text 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-text {
+            0%, 100% { text-shadow: 0 0 20px rgba(255,0,0,0.2); }
+            50% { text-shadow: 0 0 40px rgba(255,0,0,0.5); }
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #8b8ba8;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        .hero .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ===== FEATURES ===== */
+        .features {
+            padding: 3rem 0;
+            animation: fadeUp 1s ease 0.8s both;
+        }
+        .features h2 {
+            font-family: 'Orbitron', monospace;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 2.5rem;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+        .feature-card {
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 1.25rem;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: cardAppear 0.6s ease forwards;
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 1s; }
+        .feature-card:nth-child(2) { animation-delay: 1.1s; }
+        .feature-card:nth-child(3) { animation-delay: 1.2s; }
+        .feature-card:nth-child(4) { animation-delay: 1.3s; }
+        .feature-card:nth-child(5) { animation-delay: 1.4s; }
+        .feature-card:nth-child(6) { animation-delay: 1.5s; }
+
+        @keyframes cardAppear {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feature-card:hover {
+            border-color: #ff0000;
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(255,0,0,0.08);
+        }
+        .feature-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #ff0000;
+            transition: transform 0.3s;
+        }
+        .feature-card:hover i {
+            transform: scale(1.2) rotate(5deg);
+        }
+        .feature-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .feature-card p { color: #8b8ba8; font-size: 0.9rem; }
+
+        /* ===== PRICING ===== */
+        .pricing {
+            padding: 3rem 0;
+            animation: fadeUp 1s ease 1.2s both;
+        }
+        .pricing h2 {
+            font-family: 'Orbitron', monospace;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 2.5rem;
+        }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .pricing-card {
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 1.25rem;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: scale(0.95);
+            animation: scaleAppear 0.6s ease forwards;
+        }
+
+        .pricing-card:nth-child(1) { animation-delay: 1.4s; }
+        .pricing-card:nth-child(2) { animation-delay: 1.6s; }
+
+        @keyframes scaleAppear {
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .pricing-card:hover {
+            border-color: #ff0000;
+            transform: translateY(-8px) scale(1.02);
+        }
+        .pricing-card.popular {
+            border-color: #ff0000;
+            background: linear-gradient(145deg, #0f0f0f, rgba(255,0,0,0.05));
+        }
+        .pricing-card .price {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 0.5rem 0;
+        }
+        .pricing-card .price small {
+            font-size: 1rem;
+            color: #8b8ba8;
+        }
+        .pricing-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+        .pricing-card ul li {
+            padding: 0.4rem 0;
+            color: #8b8ba8;
+            font-size: 0.9rem;
+        }
+        .pricing-card ul li i {
+            color: #ff0000;
+            margin-right: 0.5rem;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid #1a1a1a;
+            color: #5a5a7a;
+            font-size: 0.8rem;
+            animation: fadeUp 1s ease 1.8s both;
+        }
+        footer .developer {
+            color: #ff0000;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== FLOATING PARTICLES ===== */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #ff0000;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float-particle linear infinite;
+        }
+
+        @keyframes float-particle {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .navbar .container { flex-direction: column; }
+            .nav-links { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    LOADING SCREEN
+    ============================================================ -->
+    <div id="loadingScreen">
+        <div class="loader">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-logo">
+                <i class="fas fa-skull"></i>
+                <span>DARK</span><span style="-webkit-text-fill-color:#f1f1f9;">DEV</span>
+            </div>
+        </div>
+        <div class="loader-bar">
+            <div class="loader-bar-fill"></div>
+        </div>
+        <div class="loader-text">Loading Dark Universe...</div>
+    </div>
+
+    <!-- ============================================================
+    PARTICLES
+    ============================================================ -->
+    <div class="particles" id="particles"></div>
+
+    <!-- ============================================================
+    NAVBAR
+    ============================================================ -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-skull"></i>
+                <span>DARK</span><span style="-webkit-text-fill-color: #f1f1f9;">DEV</span>
+                <span class="badge">OFC</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="/dashboard.html" class="btn btn-outline">Dashboard</a>
+                <a href="/dashboard.html" class="btn btn-primary"><i class="fas fa-rocket"></i> Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================================================
+    HERO
+    ============================================================ -->
+    <section class="hero container">
+        <h1>
+            Deploy Websites<br />
+            from <span class="highlight">GitHub</span> for Free
+        </h1>
+        <p>
+            Connect your GitHub repository, and we'll deploy it instantly.
+            No configuration needed. Just push and go.
+        </p>
+        <div class="cta-buttons">
+            <a href="/dashboard.html" class="btn btn-primary"><i class="fab fa-github"></i> Deploy Now</a>
+            <a href="#features" class="btn btn-outline">Learn More</a>
+        </div>
+        <div style="margin-top:2rem;display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;font-size:0.85rem;color:#5a5a7a;">
+            <span><i class="fas fa-check-circle" style="color:#ff0000;"></i> 1,200+ sites deployed</span>
+            <span><i class="fas fa-check-circle" style="color:#ff0000;"></i> 24/7 free hosting</span>
+            <span><i class="fas fa-check-circle" style="color:#ff0000;"></i> Auto-build on push</span>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    FEATURES
+    ============================================================ -->
+    <section id="features" class="features container">
+        <h2>Why Choose <span style="background:linear-gradient(135deg,#ff0000,#cc0000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">DARK DEV</span>?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fab fa-github"></i>
+                <h3>GitHub Integration</h3>
+                <p>Connect any public or private repository. Deploy with one click.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-bolt"></i>
+                <h3>Auto Deploy</h3>
+                <p>Every push to your repository triggers a new deployment automatically.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-cloud"></i>
+                <h3>Global CDN</h3>
+                <p>Your site is served from 300+ locations worldwide. Lightning fast.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-terminal"></i>
+                <h3>Build Logs</h3>
+                <p>See exactly what's happening during each build. Debug with ease.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-users"></i>
+                <h3>Team Collaboration</h3>
+                <p>Invite team members to manage deployments together.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Free SSL</h3>
+                <p>Every site gets automatic HTTPS. Security included.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    PRICING
+    ============================================================ -->
+    <section id="pricing" class="pricing container">
+        <h2>Simple, Transparent <span style="background:linear-gradient(135deg,#ff0000,#cc0000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Pricing</span></h2>
+        <div class="pricing-grid">
+            <div class="pricing-card popular">
+                <h3>Free</h3>
+                <div class="price">$0 <small>/month</small></div>
+                <ul>
+                    <li><i class="fas fa-check"></i> 5 sites</li>
+                    <li><i class="fas fa-check"></i> 10 GB bandwidth</li>
+                    <li><i class="fas fa-check"></i> 1 GB storage</li>
+                    <li><i class="fas fa-check"></i> Auto deploy</li>
+                    <li><i class="fas fa-check"></i> Build logs</li>
+                </ul>
+                <a href="/dashboard.html" class="btn btn-primary" style="width:100%;justify-content:center;">Get Started</a>
+                <div style="font-size:0.7rem;color:#ff0000;margin-top:0.5rem;">❤️ 100% free. No credit card.</div>
+            </div>
+            <div class="pricing-card">
+                <h3>Pro</h3>
+                <div class="price">$9 <small>/month</small></div>
+                <ul>
+                    <li><i class="fas fa-check"></i> 50 sites</li>
+                    <li><i class="fas fa-check"></i> 100 GB bandwidth</li>
+                    <li><i class="fas fa-check"></i> 10 GB storage</li>
+                    <li><i class="fas fa-check"></i> Priority builds</li>
+                    <li><i class="fas fa-check"></i> Team members</li>
+                </ul>
+                <a href="/dashboard.html" class="btn btn-outline" style="width:100%;justify-content:center;">Coming Soon</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    FOOTER
+    ============================================================ -->
+    <footer class="container">
+        <p>☠︎ <strong style="color:#ff0000;">DARK DEV OFC</strong> • <i class="fas fa-circle" style="color:#ff0000;font-size:0.3rem;vertical-align:middle;"></i> 100% uptime • Built for developers</p>
+        <p style="margin-top:0.3rem;font-size:0.7rem;color:#3a3a5a;">
+            Developed by <span class="developer">FIXO DEV</span>
+        </p>
+        <p style="margin-top:0.3rem;">
+            <a href="#" style="color:#5a5a7a;text-decoration:none;">Privacy</a> •
+            <a href="#" style="color:#5a5a7a;text-decoration:none;">Terms</a> •
+            <a href="#" style="color:#5a5a7a;text-decoration:none;">Support</a>
+        </p>
+    </footer>
+
+    <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // LOADING SCREEN
+            // ============================================================
+            const loadingScreen = document.getElementById('loadingScreen');
+
+            setTimeout(function() {
+                loadingScreen.classList.add('hidden');
+                setTimeout(function() {
+                    loadingScreen.style.display = 'none';
+                }, 800);
+            }, 3000);
+
+            // ============================================================
+            // PARTICLES GENERATOR
+            // ============================================================
+            function createParticles() {
+                const container = document.getElementById('particles');
+                const count = 30;
+
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    
+                    const x = Math.random() * 100;
+                    const size = Math.random() * 4 + 2;
+                    const duration = Math.random() * 15 + 10;
+                    const delay = Math.random() * 15;
+                    const opacity = Math.random() * 0.3 + 0.1;
+                    
+                    particle.style.left = x + '%';
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    particle.style.animationDuration = duration + 's';
+                    particle.style.animationDelay = delay + 's';
+                    particle.style.opacity = opacity;
+                    particle.style.background = Math.random() > 0.5 ? '#ff0000' : '#cc0000';
+                    
+                    container.appendChild(particle);
+                }
+            }
+
+            createParticles();
+
+            // ============================================================
+            // SMOOTH SCROLL
+            // ============================================================
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // ============================================================
+            // NAVBAR SCROLL EFFECT
+            // ============================================================
+            const navbar = document.querySelector('.navbar');
+            let lastScroll = 0;
+
+            window.addEventListener('scroll', function() {
+                const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (currentScroll > 50) {
+                    navbar.style.boxShadow = '0 4px 30px rgba(0,0,0,0.5)';
+                } else {
+                    navbar.style.boxShadow = 'none';
+                }
+                
+                lastScroll = currentScroll;
+            });
+
+            console.log('🔥 DARK DEV OFC loaded with animations!');
+        })();
+    </script>
+
+</body>
+</html>
