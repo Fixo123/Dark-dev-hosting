@@ -75,3 +75,7 @@
    ```bash
    git clone https://github.com/YOUR_USERNAME/dark-dev-hosting.git
    cd dark-dev-hosting
+
+👨‍💻 Developed By
+<div align="center"> <h3> <span style="color:#ff0000;">FIXO DEV</span> </h3> <p> <a href="https://github.com/Fixo123"> <img src="https://img.shields.io/badge/GitHub-Fixo123-181717?style=for-the-badge&logo=github" alt="GitHub" /> </a> <a href="https://dark-dev-hosting.onrender.com"> <img src="https://img.shields.io/badge/Website-DARK_DEV_HOSTING-red?style=for-the-badge&logo=render" alt="Website" /> </a> </p> </div>
+<div align="center"> <p> Made with ❤️ by <strong>FIXO DEV</strong> </p> <p> ⭐ Star this repository if you found it useful! </p> </div> ```
