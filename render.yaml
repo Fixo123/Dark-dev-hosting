@@ -1,4 +1,17 @@
 services:
+  - type: web
+    name: dark-dev-ofc-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_API_TOKEN
+        sync: false
+    healthCheckPath: /
+    autoDeploy: true
+
   - type: static
     name: dark-dev-ofc
     env: static
@@ -12,6 +25,3 @@ services:
       - path: /*
         name: X-Frame-Options
         value: DENY
-      - path: /*
-        name: X-Content-Type-Options
-        value: nosniff
