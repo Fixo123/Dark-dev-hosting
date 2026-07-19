@@ -6,6 +6,3 @@
 
 # Admin Panel
 /admin.html    /admin.html    200
-
-# API Routes
-/api/*    /functions/api/*    200
