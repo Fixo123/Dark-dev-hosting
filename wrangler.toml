@@ -1,6 +1,0 @@
-name = "dark-dev-ofc"
-compatibility_date = "2024-12-18"
-
-[vars]
-CLOUDFLARE_API_TOKEN = "cfut_d8egcq869x5XtVPZLJMQYxrHGZlNzXBHYXMlom724f3b3045"
-CLOUDFLARE_ACCOUNT_ID = "f3484119d480faff3900e3d680d85939"
