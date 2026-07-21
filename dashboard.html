@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DARK DEV OFC • Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+    <style>
+        /* ===== GLOBAL ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #f1f1f9;
+            min-height: 100vh;
+            line-height: 1.6;
+            background-image: radial-gradient(ellipse at 20% 50%, rgba(139, 0, 0, 0.06) 0%, transparent 60%);
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        #loadingScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .loader {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #ff0000;
+            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+        .loader-ring:nth-child(2) {
+            width: 80%;
+            height: 80%;
+            border-top-color: #cc0000;
+            animation-duration: 1.5s;
+            animation-direction: reverse;
+        }
+        .loader-ring:nth-child(3) {
+            width: 60%;
+            height: 60%;
+            border-top-color: #ff4444;
+            animation-duration: 1.8s;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        .loader-logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            z-index: 1;
+            animation: pulse-logo 1.5s ease-in-out infinite;
+        }
+        .loader-logo i {
+            color: #ff0000;
+        }
+        .loader-logo span {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        @keyframes pulse-logo {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.7;
+            }
+        }
+        .loader-bar {
+            margin-top: 2rem;
+            width: 200px;
+            height: 3px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .loader-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff0000, #cc0000);
+            border-radius: 10px;
+            animation: fill-bar 2.5s ease-in-out forwards;
+        }
+        @keyframes fill-bar {
+            0% {
+                width: 0%;
+            }
+            50% {
+                width: 60%;
+            }
+            80% {
+                width: 85%;
+            }
+            100% {
+                width: 100%;
+            }
+        }
+        .loader-text {
+            color: #5a5a7a;
+            font-size: 0.8rem;
+            margin-top: 0.8rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            animation: blink-text 1.5s ease-in-out infinite;
+        }
+        @keyframes blink-text {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #1a1a1a;
+            background: rgba(10, 10, 10, 0.92);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 0.8s ease forwards;
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        @keyframes slideDown {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.4rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .logo i {
+            color: #ff0000;
+        }
+        .logo span {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: #8b8ba8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.4rem 0.9rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+        }
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #fff;
+            background: rgba(255, 0, 0, 0.08);
+        }
+        .nav-links a.active {
+            color: #ff0000;
+        }
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #fff;
+            cursor: pointer;
+            animation: avatarPulse 3s ease-in-out infinite;
+        }
+        @keyframes avatarPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(255, 0, 0, 0.4);
+            }
+        }
+        .user-avatar:hover {
+            transform: scale(1.1);
+        }
+        .btn-logout {
+            background: none;
+            border: none;
+            color: #8b8ba8;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+        }
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            transform: rotate(10deg);
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: cardSlideUp 0.6s ease forwards;
+        }
+        .card:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+        .card:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+        .card:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        .card:nth-child(4) {
+            animation-delay: 0.5s;
+        }
+        @keyframes cardSlideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .card:hover {
+            border-color: rgba(255, 0, 0, 0.3);
+        }
+
+        /* ===== STATS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .stat-card {
+            padding: 1.2rem 1.5rem;
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 1.25rem;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(0.95);
+            animation: statAppear 0.5s ease forwards;
+        }
+        .stat-card:nth-child(1) {
+            animation-delay: 0.3s;
+        }
+        .stat-card:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+        .stat-card:nth-child(3) {
+            animation-delay: 0.5s;
+        }
+        .stat-card:nth-child(4) {
+            animation-delay: 0.6s;
+        }
+        @keyframes statAppear {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #ff0000, #cc0000);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+        .stat-card:hover {
+            border-color: rgba(255, 0, 0, 0.25);
+            transform: translateY(-3px);
+        }
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: #8b8ba8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== DEPLOY FORM ===== */
+        .deploy-hero {
+            margin: 1.5rem 0 2rem;
+        }
+        .deploy-hero .card {
+            padding: 2rem;
+            border-color: rgba(255, 0, 0, 0.2);
+            background: linear-gradient(145deg, rgba(15, 15, 15, 0.95), rgba(255, 0, 0, 0.02));
+        }
+        .deploy-form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+        .deploy-form-row .form-group {
+            flex: 2;
+            min-width: 200px;
+        }
+        .deploy-form-row .form-group-sm {
+            flex: 1;
+            min-width: 130px;
+        }
+        .deploy-form-row label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #8b8ba8;
+            margin-bottom: 0.2rem;
+        }
+        .deploy-form-row input,
+        .deploy-form-row select {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 0.75rem;
+            color: #f1f1f9;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .deploy-form-row input:focus,
+        .deploy-form-row select:focus {
+            border-color: #ff0000;
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.12);
+            transform: scale(1.01);
+        }
+
+        /* ===== FILE DROP ZONE ===== */
+        .drop-zone {
+            border: 2px dashed #1a1a1a;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-top: 0.8rem;
+            position: relative;
+        }
+        .drop-zone.dragover {
+            border-color: #ff0000;
+            background: rgba(255, 0, 0, 0.05);
+        }
+        .drop-zone .icon {
+            font-size: 2.5rem;
+            color: #ff0000;
+            margin-bottom: 0.5rem;
+        }
+        .drop-zone .text {
+            color: #8b8ba8;
+            font-size: 0.85rem;
+        }
+        .drop-zone .text strong {
+            color: #ff0000;
+        }
+        .drop-zone .files-list {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            justify-content: center;
+        }
+        .drop-zone .file-tag {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff0000;
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .drop-zone .file-tag .remove {
+            cursor: pointer;
+            color: #ef4444;
+        }
+        .drop-zone .file-tag .remove:hover {
+            color: #ff0000;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: #fff;
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transform: rotate(45deg) translateX(-100%);
+            transition: transform 0.6s;
+        }
+        .btn-primary:hover::before {
+            transform: rotate(45deg) translateX(100%);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(255, 0, 0, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #1a1a1a;
+            color: #8b8ba8;
+        }
+        .btn-outline:hover {
+            border-color: #ff0000;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: #10b981;
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .deploy-status {
+            margin-top: 1rem;
+            padding: 0.8rem 1.2rem;
+            border-radius: 0.75rem;
+            display: none;
+            align-items: center;
+            gap: 0.8rem;
+            border: 1px solid transparent;
+        }
+        .deploy-status.show {
+            display: flex;
+            animation: statusPop 0.5s ease forwards;
+        }
+        @keyframes statusPop {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .deploy-status.loading {
+            border-color: #f59e0b;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.05);
+        }
+        .deploy-status.success {
+            border-color: #10b981;
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        .deploy-status.error {
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-container {
+            margin-top: 0.8rem;
+            width: 100%;
+            display: none;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, #ff0000, #cc0000);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        .progress-text {
+            font-size: 0.7rem;
+            color: #8b8ba8;
+            text-align: center;
+            margin-top: 0.2rem;
+        }
+
+        /* ===== DEPLOYMENTS ===== */
+        .deploy-item {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 0.75rem;
+            padding: 0.9rem 1.2rem;
+            margin-bottom: 0.6rem;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: itemSlideIn 0.5s ease forwards;
+        }
+        .deploy-item:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+        .deploy-item:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+        .deploy-item:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes itemSlideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .deploy-item:hover {
+            border-color: rgba(255, 0, 0, 0.2);
+            transform: translateX(5px);
+        }
+        .deploy-item .row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .deploy-item .info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            flex: 1;
+        }
+        .deploy-item .name {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .deploy-item .url {
+            font-size: 0.8rem;
+            color: #8b8ba8;
+        }
+        .deploy-item .repo {
+            font-size: 0.7rem;
+            color: #5a5a7a;
+        }
+        .deploy-item .actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.2rem 0.8rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            animation: badgePop 0.5s ease forwards;
+        }
+        @keyframes badgePop {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .badge-green {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        .badge-yellow {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+        .badge-red {
+            background: rgba(255, 0, 0, 0.15);
+            color: #ff0000;
+        }
+        .badge-blue {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+        .badge-purple {
+            background: rgba(124, 58, 237, 0.15);
+            color: #7c3aed;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.3rem;
+        }
+        .status-dot.green {
+            background: #10b981;
+            animation: pulse-dot 2s infinite;
+        }
+        .status-dot.yellow {
+            background: #f59e0b;
+            animation: pulse-dot 1.5s infinite;
+        }
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.5);
+            }
+        }
+        .visit-link {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .visit-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== LOGS ===== */
+        .logs-container {
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid #1a1a1a;
+            display: none;
+        }
+        .logs-container.open {
+            display: block;
+            animation: logExpand 0.3s ease forwards;
+        }
+        @keyframes logExpand {
+            from {
+                opacity: 0;
+                transform: scaleY(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scaleY(1);
+            }
+        }
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: #8b8ba8;
+            padding: 0.2rem 0;
+            border-bottom: 1px solid rgba(26, 26, 26, 0.3);
+            display: flex;
+            gap: 0.8rem;
+            opacity: 0;
+            animation: logFade 0.3s ease forwards;
+        }
+        .log-entry:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+        .log-entry:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .log-entry:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+        @keyframes logFade {
+            to {
+                opacity: 1;
+            }
+        }
+        .log-entry .time {
+            color: #5a5a7a;
+            min-width: 80px;
+        }
+        .log-entry .level.success {
+            color: #10b981;
+        }
+        .log-entry .level.error {
+            color: #ef4444;
+        }
+        .log-entry .level.warn {
+            color: #f59e0b;
+        }
+        .log-entry .level.info {
+            color: #3b82f6;
+        }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 380px;
+            width: 100%;
+        }
+        .toast {
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.9rem;
+        }
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+        .toast.success i {
+            color: #10b981;
+        }
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+        .toast.error i {
+            color: #ef4444;
+        }
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+        .toast.info i {
+            color: #3b82f6;
+        }
+
+        .footer-dev {
+            color: #ff0000;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .navbar .container {
+                flex-direction: column;
+            }
+            .nav-links {
+                justify-content: center;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .deploy-form-row {
+                flex-direction: column;
+            }
+            .deploy-item .row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .toast-container {
+                left: 1rem;
+                right: 1rem;
+                bottom: 1rem;
+                max-width: none;
+            }
+        }
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LOADING SCREEN ===== -->
+    <div id="loadingScreen">
+        <div class="loader">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-logo">
+                <i class="fas fa-skull"></i>
+                <span>DARK</span><span style="-webkit-text-fill-color:#f1f1f9;">DEV</span>
+            </div>
+        </div>
+        <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+        <div class="loader-text">Loading Dashboard...</div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-skull"></i>
+                <span>DARK</span><span style="-webkit-text-fill-color: #f1f1f9;">DEV</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="active" data-page="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="#" data-page="deployments"><i class="fas fa-code-branch"></i> Deployments</a>
+                <a href="#" data-page="about"><i class="fas fa-info-circle"></i> About</a>
+                <a href="#" data-page="account"><i class="fas fa-user-cog"></i> Account</a>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+                <div class="user-avatar" id="userAvatar"><span id="avatarText">D</span></div>
+                <button class="btn-logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== MAIN ===== -->
+    <main class="container">
+
+        <!-- PAGE: Dashboard -->
+        <div id="page-dashboard" class="page-content">
+
+            <!-- Stats -->
+            <section class="stats-grid">
+                <div class="stat-card"><div class="stat-number" id="totalDeploys">24</div><div class="stat-label">Total Deployments</div></div>
+                <div class="stat-card"><div class="stat-number" id="activeDeploys">18</div><div class="stat-label">Active Sites</div></div>
+                <div class="stat-card"><div class="stat-number">42</div><div class="stat-label">Total Users</div></div>
+                <div class="stat-card"><div class="stat-number">7</div><div class="stat-label">Databases</div></div>
+            </section>
+
+            <!-- Deploy Form -->
+            <section class="deploy-hero">
+                <div class="card">
+                    <h2 style="display:flex;align-items:center;gap:0.75rem;font-size:1.5rem;font-family:'Orbitron',monospace;">
+                        <i class="fas fa-rocket" style="color:#ff0000;"></i> Deploy from GitHub
+                    </h2>
+                    <p style="color:#8b8ba8;margin-bottom:1.2rem;">
+                        Connect any <strong style="color:#ff0000;">public</strong> GitHub repository or <strong style="color:#ff0000;">drag & drop</strong> your files.
+                    </p>
+
+                    <!-- GitHub Deploy -->
+                    <form id="deployForm" class="deploy-form-row">
+                        <div class="form-group">
+                            <label><i class="fab fa-github"></i> Repository URL</label>
+                            <input type="url" id="repoUrl" placeholder="https://github.com/username/public-repo" />
+                        </div>
+                        <div class="form-group-sm">
+                            <label><i class="fas fa-code-branch"></i> Branch</label>
+                            <select id="branchSelect">
+                                <option value="main">main</option>
+                                <option value="master">master</option>
+                                <option value="dev">dev</option>
+                            </select>
+                        </div>
+                        <div class="form-group-sm">
+                            <label><i class="fas fa-tag"></i> Site Name</label>
+                            <input type="text" id="siteNameInput" placeholder="my-site" />
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="deployBtn">
+                            <i class="fas fa-cloud-upload-alt"></i> Deploy Now
+                        </button>
+                    </form>
+
+                    <!-- OR Divider -->
+                    <div style="display:flex;align-items:center;gap:1rem;margin:1rem 0;color:#5a5a7a;">
+                        <hr style="flex:1;border-color:#1a1a1a;" />
+                        <span style="font-size:0.8rem;">OR</span>
+                        <hr style="flex:1;border-color:#1a1a1a;" />
+                    </div>
+
+                    <!-- File Drop Zone -->
+                    <div class="drop-zone" id="dropZone">
+                        <div class="icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <div class="text">
+                            <strong>Drag & drop</strong> your files here or click to browse
+                            <br />
+                            <small style="color:#5a5a7a;">HTML, CSS, JS, ZIP files allowed (max 50MB)</small>
+                        </div>
+                        <div class="files-list" id="filesList"></div>
+                        <input type="file" id="fileInput" multiple style="display:none;" accept=".html,.css,.js,.zip" />
+                        <button class="btn btn-outline" style="margin-top:0.5rem;" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-folder-open"></i> Browse Files
+                        </button>
+                    </div>
+
+                    <!-- Provider Badges -->
+                    <div style="margin-top:0.8rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        <span class="badge badge-blue"><i class="fas fa-check"></i> Netlify</span>
+                        <span class="badge badge-purple"><i class="fas fa-check"></i> GitHub Pages</span>
+                        <span class="badge badge-red"><i class="fas fa-file"></i> File Upload</span>
+                        <span style="font-size:0.7rem;color:#5a5a7a;margin-left:0.5rem;">
+                            <i class="fas fa-sync-alt"></i> Auto-failover enabled
+                        </span>
+                    </div>
+
+                    <div id="deployStatus" class="deploy-status">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span id="statusMessage">Deploying...</span>
+                    </div>
+
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar" id="progressBar"></div>
+                        <div class="progress-text" id="progressText">0%</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Deployments -->
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:1.2rem;">
+                    <h3 style="font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:0.5rem;">
+                        <i class="fas fa-server" style="color:#ff0000;"></i> Your Deployments
+                    </h3>
+                    <span class="badge badge-green"><span class="status-dot green"></span> <span id="liveCount">18</span> live</span>
+                </div>
+                <div id="deploymentsContainer">
+                    <!-- Deployments will be added by JavaScript -->
+                </div>
+                <div style="text-align:center;margin-top:1.2rem;padding-top:1rem;border-top:1px solid #1a1a1a;">
+                    <button class="btn btn-outline" style="padding:0.3rem 1.2rem;font-size:0.8rem;" id="loadMoreBtn">
+                        <i class="fas fa-plus"></i> Load More
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: Deployments -->
+        <div id="page-deployments" class="page-content" style="display:none;">
+            <div class="card">
+                <h2 style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;font-family:'Orbitron',monospace;">
+                    <i class="fas fa-code-branch" style="color:#ff0000;"></i> All Deployments
+                </h2>
+                <div id="allDeploymentsList"></div>
+            </div>
+        </div>
+
+        <!-- PAGE: About -->
+        <div id="page-about" class="page-content" style="display:none;">
+            <div class="card">
+                <h2 style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;font-family:'Orbitron',monospace;">
+                    <i class="fas fa-info-circle" style="color:#ff0000;"></i> About DARK DEV OFC
+                </h2>
+                <p style="color:#8b8ba8;line-height:1.8;">
+                    <strong style="color:#ff0000;">DARK DEV OFC</strong> is a free, cloud-native deployment platform that connects your
+                    <strong>GitHub repositories</strong> or <strong>uploaded files</strong> to <strong>Netlify</strong> and <strong>GitHub Pages</strong>
+                    for instant, automated deployments with auto-failover support.
+                </p>
+                <div style="margin-top:1.5rem;display:flex;gap:0.8rem;flex-wrap:wrap;">
+                    <span class="badge badge-red"><i class="fas fa-rocket"></i> v5.0</span>
+                    <span class="badge badge-green"><i class="fas fa-cloud"></i> Multi-Cloud</span>
+                    <span class="badge badge-blue"><i class="fas fa-file"></i> File Upload</span>
+                </div>
+                <div style="margin-top:1rem;padding:1rem;background:#0a0a0a;border-radius:0.75rem;border:1px solid #1a1a1a;">
+                    <p style="font-size:0.8rem;color:#5a5a7a;text-align:center;">
+                        Developed by <span style="color:#ff0000;font-weight:700;">FIXO DEV</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: Account -->
+        <div id="page-account" class="page-content" style="display:none;">
+            <div class="card">
+                <h2 style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;font-family:'Orbitron',monospace;">
+                    <i class="fas fa-user-cog" style="color:#ff0000;"></i> Your Account
+                </h2>
+                <div style="display:flex;align-items:center;gap:1.5rem;padding:0.5rem 0;flex-wrap:wrap;">
+                    <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#ff0000,#cc0000);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:#fff;" id="accountAvatar">D</div>
+                    <div>
+                        <div style="font-size:1.1rem;font-weight:700;" id="accountName">Dark Dev</div>
+                        <div style="color:#8b8ba8;font-size:0.9rem;" id="accountEmail">demo@darkdev.com</div>
+                    </div>
+                </div>
+                <div style="margin-top:1.5rem;display:flex;gap:0.8rem;flex-wrap:wrap;">
+                    <button class="btn btn-outline" onclick="showToast('Profile settings opened', 'info')"><i class="fas fa-edit"></i> Edit Profile</button>
+                    <button class="btn btn-outline" onclick="showToast('Security settings opened', 'info')"><i class="fas fa-shield-alt"></i> Security</button>
+                </div>
+                <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid #1a1a1a;text-align:center;font-size:0.8rem;color:#5a5a7a;">
+                    Developed by <span style="color:#ff0000;font-weight:700;">FIXO DEV</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer style="text-align:center;padding:1.5rem 0;border-top:1px solid #1a1a1a;color:#5a5a7a;font-size:0.8rem;margin-top:1rem;">
+        <p>☠︎ <strong style="color:#ff0000;">DARK DEV OFC</strong> • <i class="fas fa-circle" style="color:#ff0000;font-size:0.3rem;vertical-align:middle;"></i> All systems operational</p>
+        <p style="margin-top:0.3rem;font-size:0.7rem;">
+            Developed by <span class="footer-dev">FIXO DEV</span>
+        </p>
+    </footer>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // LOADING SCREEN
+            // ============================================================
+            const loadingScreen = document.getElementById('loadingScreen');
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 800);
+            }, 2500);
+
+            // ============================================================
+            // TOAST
+            // ============================================================
+            function showToast(message, type = 'success') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' :
+                    'fa-info-circle';
+                toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+                container.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.add('show'));
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 400);
+                }, 4500);
+            }
+            window.showToast = showToast;
+
+            // ============================================================
+            // NAVIGATION
+            // ============================================================
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.dataset.page;
+                    document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
+                    const target = document.getElementById(`page-${page}`);
+                    if (target) target.style.display = 'block';
+                });
+            });
+
+            // ============================================================
+            // TOGGLE LOGS
+            // ============================================================
+            window.toggleLogs = function(btn) {
+                const item = btn.closest('.deploy-item');
+                const logs = item.querySelector('.logs-container');
+                if (logs) {
+                    logs.classList.toggle('open');
+                    btn.innerHTML = logs.classList.contains('open') ?
+                        '<i class="fas fa-terminal"></i> Hide Logs' :
+                        '<i class="fas fa-terminal"></i> Logs';
+                }
+            };
+
+            // ============================================================
+            // DEPLOY STATUS
+            // ============================================================
+            const deployForm = document.getElementById('deployForm');
+            const repoUrlInput = document.getElementById('repoUrl');
+            const branchSelect = document.getElementById('branchSelect');
+            const siteNameInput = document.getElementById('siteNameInput');
+            const deployBtn = document.getElementById('deployBtn');
+            const deployStatus = document.getElementById('deployStatus');
+            const statusMsg = document.getElementById('statusMessage');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            let selectedFiles = [];
+
+            // ============================================================
+            // FILE DROP ZONE
+            // ============================================================
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            const filesList = document.getElementById('filesList');
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                handleFiles(files);
+            });
+
+            dropZone.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+                fileInput.value = '';
+            });
+
+            function handleFiles(files) {
+                for (const file of files) {
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    if (['html', 'css', 'js', 'zip'].includes(ext)) {
+                        selectedFiles.push(file);
+                    } else {
+                        showToast(`Invalid file type: ${file.name}. Only HTML, CSS, JS, ZIP allowed.`, 'error');
+                    }
+                }
+                updateFilesList();
+                if (selectedFiles.length > 0) {
+                    showToast(`${selectedFiles.length} file(s) selected`, 'success');
+                }
+            }
+
+            function updateFilesList() {
+                filesList.innerHTML = selectedFiles.map((f, i) =>
+                    `<span class="file-tag">
+                        <i class="fas fa-file"></i> ${f.name} (${(f.size / 1024).toFixed(1)} KB)
+                        <span class="remove" onclick="removeFile(${i})">&times;</span>
+                    </span>`
+                ).join('');
+            }
+
+            window.removeFile = function(index) {
+                selectedFiles.splice(index, 1);
+                updateFilesList();
+            };
+
+            // ============================================================
+            // UPDATE STATS
+            // ============================================================
+            function updateStats() {
+                const items = document.querySelectorAll('.deploy-item');
+                const total = items.length;
+                const itemsArray = Array.from(items);
+                const active = itemsArray.filter(el => {
+                    const badge = el.querySelector('.badge-green');
+                    return badge && badge.textContent.includes('active');
+                }).length;
+
+                document.getElementById('totalDeploys').textContent = total;
+                document.getElementById('activeDeploys').textContent = active;
+                document.getElementById('liveCount').textContent = active;
+            }
+
+            // ============================================================
+            // ADD DEPLOYMENT
+            // ============================================================
+            function addDeployment(name, repo, branch, liveUrl, provider, status = 'active', isFile = false) {
+                const container = document.getElementById('deploymentsContainer');
+                const item = document.createElement('div');
+                item.className = 'deploy-item';
+
+                const providerBadge = provider === 'netlify' ?
+                    '<span class="badge badge-blue"><i class="fas fa-check"></i> Netlify</span>' :
+                    provider === 'github-pages' ?
+                    '<span class="badge badge-purple"><i class="fas fa-check"></i> GitHub Pages</span>' :
+                    '<span class="badge badge-red"><i class="fas fa-check"></i> File Upload</span>';
+
+                const sourceLabel = isFile ? '📁 File Upload' : `📦 ${repo}`;
+
+                const logs = [
+                    { time: new Date().toLocaleString(), level: 'info', msg: `🚀 Deployment triggered` },
+                    { time: new Date().toLocaleString(), level: 'info', msg: `📦 Source: ${sourceLabel}` },
+                    { time: new Date().toLocaleString(), level: 'info', msg: `📦 Deploying to ${provider}...` },
+                    { time: new Date().toLocaleString(), level: 'success', msg: `✅ Build completed successfully!` },
+                    { time: new Date().toLocaleString(), level: 'success', msg: `🌐 Live at: ${liveUrl}` },
+                ];
+
+                let logsHTML = logs.map(log =>
+                    `<div class="log-entry"><span class="time">${log.time}</span><span class="level ${log.level}">${log.level === 'success' ? '✔' : log.level === 'error' ? '✘' : log.level === 'warn' ? '⚠' : 'ℹ'}</span> ${log.msg}</div>`
+                ).join('');
+
+                const statusDot = status === 'active' ? 'green' : 'yellow';
+                const statusBadge = status === 'active' ? 'badge-green' : 'badge-yellow';
+
+                item.innerHTML = `
+                    <div class="row">
+                        <div class="info">
+                            <div class="name">
+                                <span class="status-dot ${statusDot}"></span> ${name}
+                                <span class="badge badge-red">${branch || 'main'}</span>
+                                ${providerBadge}
+                                ${isFile ? '<span class="badge badge-yellow"><i class="fas fa-file"></i> Upload</span>' : ''}
+                            </div>
+                            <div class="url">
+                                <i class="fas fa-link"></i> 
+                                <a href="${liveUrl}" target="_blank" class="visit-link">${liveUrl}</a>
+                            </div>
+                            <div class="repo">${isFile ? '📁 File Upload' : `<i class="fab fa-github"></i> ${repo}`}</div>
+                        </div>
+                        <div class="actions">
+                            <span class="badge ${statusBadge}">${status}</span>
+                            <a href="${liveUrl}" target="_blank" class="btn btn-primary" style="padding:0.3rem 0.8rem;font-size:0.7rem;text-decoration:none;">
+                                <i class="fas fa-external-link-alt"></i> Visit
+                            </a>
+                            <button class="btn btn-outline" style="padding:0.3rem 0.8rem;font-size:0.7rem;" onclick="toggleLogs(this)">
+                                <i class="fas fa-terminal"></i> Logs
+                            </button>
+                        </div>
+                    </div>
+                    <div class="logs-container">${logsHTML}</div>
+                `;
+
+                container.insertBefore(item, container.firstChild);
+                updateStats();
+            }
+
+            // ============================================================
+            // SET DEPLOY STATUS
+            // ============================================================
+            function setDeployStatus(message, type = 'loading') {
+                deployStatus.className = `deploy-status show ${type}`;
+                statusMsg.textContent = message;
+                const icon = deployStatus.querySelector('i');
+                if (type === 'loading') icon.className = 'fas fa-spinner fa-spin';
+                else if (type === 'success') icon.className = 'fas fa-check-circle';
+                else if (type === 'error') icon.className = 'fas fa-exclamation-circle';
+            }
+
+            function hideDeployStatus() {
+                deployStatus.className = 'deploy-status';
+            }
+
+            // ============================================================
+            // UPDATE PROGRESS
+            // ============================================================
+            function updateProgress(percentage, message) {
+                progressContainer.style.display = 'block';
+                const pct = Math.min(Math.round(percentage), 100);
+                progressBar.style.width = pct + '%';
+                progressText.textContent = message || pct + '%';
+                if (pct >= 100) {
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        progressBar.style.width = '0%';
+                    }, 3000);
+                }
+            }
+
+            // ============================================================
+            // DEPLOY FORM - GITHUB REPO
+            // ============================================================
+            deployForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                // Check if file upload
+                if (selectedFiles.length > 0) {
+                    await deployFiles();
+                    return;
+                }
+
+                const repoUrl = repoUrlInput.value.trim();
+                const branch = branchSelect.value;
+                let siteName = siteNameInput.value.trim();
+
+                if (!repoUrl) {
+                    showToast('Please enter a GitHub repository URL or upload files', 'error');
+                    return;
+                }
+
+                let repoFull = '';
+                try {
+                    const url = new URL(repoUrl);
+                    const path = url.pathname.replace(/^\//, '').replace(/\.git$/, '');
+                    if (path.split('/').length >= 2) {
+                        repoFull = path;
+                    } else {
+                        throw new Error('Invalid');
+                    }
+                } catch (err) {
+                    showToast('Invalid GitHub URL. Use: https://github.com/username/repo', 'error');
+                    return;
+                }
+
+                if (!siteName) {
+                    siteName = repoFull.split('/').pop() || 'my-site';
+                    siteNameInput.value = siteName;
+                }
+
+                setDeployStatus(`⏳ Deploying ${siteName}...`, 'loading');
+                updateProgress(0, 'Starting deployment...');
+                deployBtn.disabled = true;
+                deployBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deploying...';
+
+                try {
+                    const response = await fetch('/api/deploy', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            repo: repoFull,
+                            branch: branch,
+                            siteName: siteName
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        const liveUrl = data.liveUrl || data.url;
+                        const provider = data.provider || 'unknown';
+                        setDeployStatus(`✅ Deployed to ${provider}! Live: ${liveUrl}`, 'success');
+                        updateProgress(100, '✅ Complete!');
+                        showToast(`🚀 ${siteName} deployed to ${provider}!`, 'success');
+                        addDeployment(siteName, repoFull, branch, liveUrl, provider, 'active', false);
+                        repoUrlInput.value = '';
+                        siteNameInput.value = '';
+                    } else {
+                        throw new Error(data.error || 'Deployment failed');
+                    }
+
+                } catch (error) {
+                    console.error('Deploy error:', error);
+                    setDeployStatus(`❌ ${error.message}`, 'error');
+                    showToast(`❌ ${error.message}`, 'error');
+                    updateProgress(100, '❌ Failed');
+                } finally {
+                    deployBtn.disabled = false;
+                    deployBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Deploy Now';
+                    setTimeout(hideDeployStatus, 5000);
+                }
+            });
+
+            // ============================================================
+            // DEPLOY FILES - FIXED
+            // ============================================================
+            async function deployFiles() {
+                if (selectedFiles.length === 0) {
+                    showToast('Please select files to upload', 'error');
+                    return;
+                }
+
+                let siteName = siteNameInput.value.trim();
+                if (!siteName) {
+                    siteName = 'site-' + Date.now();
+                    siteNameInput.value = siteName;
+                }
+
+                setDeployStatus(`⏳ Uploading ${selectedFiles.length} files...`, 'loading');
+                updateProgress(0, 'Uploading files...');
+                deployBtn.disabled = true;
+                deployBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+                try {
+                    const formData = new FormData();
+                    for (const file of selectedFiles) {
+                        formData.append('files', file);
+                    }
+                    formData.append('siteName', siteName);
+
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        const liveUrl = data.liveUrl || data.url;
+                        setDeployStatus(`✅ Files deployed! Live: ${liveUrl}`, 'success');
+                        updateProgress(100, '✅ Complete!');
+                        showToast(`📁 ${siteName} deployed!`, 'success');
+                        addDeployment(siteName, 'File Upload', 'main', liveUrl, data.provider || 'netlify', 'active', true);
+                        selectedFiles = [];
+                        updateFilesList();
+                        siteNameInput.value = '';
+                    } else {
+                        throw new Error(data.error || 'File upload failed');
+                    }
+
+                } catch (error) {
+                    console.error('File deploy error:', error);
+                    setDeployStatus(`❌ ${error.message}`, 'error');
+                    showToast(`❌ ${error.message}`, 'error');
+                    updateProgress(100, '❌ Failed');
+                } finally {
+                    deployBtn.disabled = false;
+                    deployBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Deploy Now';
+                    setTimeout(hideDeployStatus, 5000);
+                }
+            }
+
+            // ============================================================
+            // LOAD MORE
+            // ============================================================
+            document.getElementById('loadMoreBtn').addEventListener('click', function() {
+                const more = ['blog-platform', 'api-gateway', 'admin-dashboard', 'chat-app'];
+                const name = more[Math.floor(Math.random() * more.length)];
+                const providers = ['netlify', 'github-pages'];
+                const provider = providers[Math.floor(Math.random() * providers.length)];
+                const liveUrl = provider === 'netlify' ?
+                    `https://${name}.netlify.app` :
+                    `https://user.github.io/${name}`;
+                addDeployment(name, `user/${name}`, 'main', liveUrl, provider, 'active', false);
+                showToast(`📦 Loaded ${name}`, 'info');
+            });
+
+            // ============================================================
+            // INIT
+            // ============================================================
+            addDeployment('my-portfolio', 'user/portfolio', 'main', 'https://my-portfolio.netlify.app', 'netlify', 'active',
+                false);
+            addDeployment('ai-bot-api', 'user/ai-bot', 'dev', 'https://user.github.io/ai-bot-api', 'github-pages',
+                'building', false);
+            addDeployment('ecommerce-store', 'user/ecommerce', 'main', 'https://ecommerce-store.netlify.app', 'netlify',
+                'active', false);
+
+            console.log('🔥 DARK DEV OFC Dashboard loaded!');
+            console.log('📁 File Upload: Enabled');
+            console.log('🔄 Auto-failover: Enabled');
+        })();
+    </script>
+
+</body>
+</html>
