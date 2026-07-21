@@ -1,0 +1,11 @@
+# SPA Routing
+/*    /index.html    200
+
+# Dashboard
+/dashboard.html    /dashboard.html    200
+
+# Admin
+/admin.html    /admin.html    200
+
+# API
+/api/*    /api/*    200
