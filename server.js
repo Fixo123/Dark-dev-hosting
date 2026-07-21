@@ -1,4 +1,4 @@
-// server.js - DARK DEV OFC Full API
+// server.js - DARK DEV OFC Full API (Fixed)
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -18,16 +18,13 @@ app.use(express.static('.'));
 // File upload setup
 const upload = multer({ 
     dest: 'uploads/',
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB
 });
 
 console.log('🔥 DARK DEV OFC API Starting...');
 
-// Store SSE connections
-const sseConnections = {};
-
 // ============================================================
-// NETLIFY DEPLOY
+// NETLIFY DEPLOY - FIXED
 // ============================================================
 async function deployToNetlify(repo, branch, siteName) {
     const netlifyToken = process.env.NETLIFY_TOKEN;
@@ -62,7 +59,7 @@ async function deployToNetlify(repo, branch, siteName) {
 }
 
 // ============================================================
-// GITHUB PAGES DEPLOY
+// GITHUB PAGES DEPLOY - FIXED
 // ============================================================
 async function deployToGitHubPages(repo, branch, siteName) {
     const githubToken = process.env.GITHUB_TOKEN;
@@ -98,11 +95,13 @@ async function deployToGitHubPages(repo, branch, siteName) {
 }
 
 // ============================================================
-// FILE UPLOAD DEPLOY - Create temp repo and deploy
+// FILE UPLOAD DEPLOY - FIXED
 // ============================================================
-async function deployFileToNetlify(files, siteName) {
+async function deployFilesToNetlify(files, siteName) {
     const netlifyToken = process.env.NETLIFY_TOKEN;
     if (!netlifyToken) throw new Error('Netlify token not configured');
+
+    console.log(`📁 Uploading ${files.length} files to Netlify...`);
 
     // Create a temporary directory
     const tempDir = path.join(__dirname, 'temp', siteName);
@@ -110,10 +109,10 @@ async function deployFileToNetlify(files, siteName) {
         fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    // Extract files
+    // Save files
     for (const file of files) {
         const filePath = path.join(tempDir, file.originalname);
-        fs.copyFileSync(file.path, filePath);
+        fs.writeFileSync(filePath, file.buffer);
     }
 
     // Create zip
@@ -158,24 +157,14 @@ async function deployFileToNetlify(files, siteName) {
 }
 
 // ============================================================
-// SSE - Real Time Updates
+// DEPLOY API - FIXED
 // ============================================================
-function sendSSEUpdate(projectName, data) {
-    const connections = sseConnections[projectName] || [];
-    const message = `data: ${JSON.stringify(data)}\n\n`;
-    connections.forEach(conn => {
-        try { conn.write(message); } catch (e) {}
-    });
-}
-
-// ============================================================
-// DEPLOY API - With Failover
-// ============================================================
-app.post('/api/deploy', async (req, res) => {
-    console.log('📥 Deploy request:', req.body);
+app.post('/api/deploy', upload.array('files'), async (req, res) => {
+    console.log('📥 Deploy request received');
 
     try {
-        const { repo, branch, siteName, files } = req.body || {};
+        const { repo, branch, siteName } = req.body || {};
+        const files = req.files || [];
 
         // ============================================================
         // FILE UPLOAD DEPLOY
@@ -185,7 +174,7 @@ app.post('/api/deploy', async (req, res) => {
             const projectName = siteName || 'site-' + Date.now();
             
             try {
-                const result = await deployFileToNetlify(files, projectName);
+                const result = await deployFilesToNetlify(files, projectName);
                 return res.json({
                     success: true,
                     message: '✅ Files deployed to Netlify!',
@@ -196,9 +185,10 @@ app.post('/api/deploy', async (req, res) => {
                     isFileUpload: true
                 });
             } catch (error) {
+                console.error('File upload error:', error);
                 return res.status(500).json({
                     success: false,
-                    error: error.message
+                    error: error.message || 'File upload failed'
                 });
             }
         }
@@ -216,14 +206,47 @@ app.post('/api/deploy', async (req, res) => {
         let repoFull = repo.replace('https://github.com/', '').replace(/\.git$/, '').replace(/\/$/, '');
         const projectName = siteName || repoFull.split('/').pop();
 
-        console.log(`🔍 Checking: ${repoFull}`);
+        console.log(`🔍 Checking repository: ${repoFull}`);
 
-        // Verify repo exists
-        const checkRes = await fetch(`https://api.github.com/repos/${repoFull}`);
-        if (!checkRes.ok) {
-            return res.status(404).json({
+        // Check if repo exists (public)
+        try {
+            const checkRes = await fetch(`https://api.github.com/repos/${repoFull}`, {
+                headers: {
+                    'User-Agent': 'DARK-DEV-OFC-Deploy'
+                }
+            });
+
+            if (!checkRes.ok) {
+                if (checkRes.status === 404) {
+                    return res.status(404).json({
+                        success: false,
+                        error: 'Repository not found. Make sure it is public and the URL is correct.',
+                        code: 'REPO_NOT_FOUND'
+                    });
+                }
+                if (checkRes.status === 403) {
+                    return res.status(403).json({
+                        success: false,
+                        error: 'GitHub API rate limit exceeded. Please try again later.',
+                        code: 'RATE_LIMIT'
+                    });
+                }
+                return res.status(checkRes.status).json({
+                    success: false,
+                    error: `GitHub API error: ${checkRes.status}`,
+                    code: 'GITHUB_API_ERROR'
+                });
+            }
+
+            const repoData = await checkRes.json();
+            console.log(`✅ Repository found: ${repoData.full_name}`);
+
+        } catch (githubError) {
+            console.error('GitHub check error:', githubError);
+            return res.status(500).json({
                 success: false,
-                error: 'Repository not found or private'
+                error: 'Failed to check repository: ' + githubError.message,
+                code: 'GITHUB_CHECK_FAILED'
             });
         }
 
@@ -236,13 +259,6 @@ app.post('/api/deploy', async (req, res) => {
         try {
             result = await deployToNetlify(repoFull, branch, projectName);
             console.log(`✅ Netlify: ${result.url}`);
-            sendSSEUpdate(projectName, {
-                type: 'complete',
-                status: 'active',
-                message: '✅ Deployed to Netlify!',
-                url: result.url,
-                provider: 'netlify'
-            });
         } catch (err) {
             error = err.message;
             console.log(`❌ Netlify failed: ${error}`);
@@ -255,13 +271,6 @@ app.post('/api/deploy', async (req, res) => {
             try {
                 result = await deployToGitHubPages(repoFull, branch, projectName);
                 console.log(`✅ GitHub Pages: ${result.url}`);
-                sendSSEUpdate(projectName, {
-                    type: 'complete',
-                    status: 'active',
-                    message: '✅ Deployed to GitHub Pages!',
-                    url: result.url,
-                    provider: 'github-pages'
-                });
             } catch (err) {
                 error = err.message;
                 console.log(`❌ GitHub Pages failed: ${error}`);
@@ -283,7 +292,8 @@ app.post('/api/deploy', async (req, res) => {
         } else {
             return res.status(500).json({
                 success: false,
-                error: `All providers failed: ${error || 'Unknown error'}`
+                error: `All providers failed: ${error || 'Unknown error'}`,
+                code: 'ALL_PROVIDERS_FAILED'
             });
         }
 
@@ -291,35 +301,46 @@ app.post('/api/deploy', async (req, res) => {
         console.error('❌ Deploy error:', error);
         return res.status(500).json({
             success: false,
-            error: error.message || 'Internal server error'
+            error: error.message || 'Internal server error',
+            code: 'INTERNAL_ERROR'
         });
     }
 });
 
 // ============================================================
-// SSE STREAM
+// FILE UPLOAD ENDPOINT (Alternative)
 // ============================================================
-app.get('/api/deploy/:projectName/stream', (req, res) => {
-    const { projectName } = req.params;
-    
-    res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
-    });
+app.post('/api/upload', upload.array('files'), async (req, res) => {
+    try {
+        const files = req.files || [];
+        const { siteName } = req.body || {};
 
-    if (!sseConnections[projectName]) {
-        sseConnections[projectName] = [];
-    }
-    sseConnections[projectName].push(res);
-
-    res.write(`data: ${JSON.stringify({ type: 'connected', message: 'SSE connected' })}\n\n`);
-
-    req.on('close', () => {
-        if (sseConnections[projectName]) {
-            sseConnections[projectName] = sseConnections[projectName].filter(conn => conn !== res);
+        if (files.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'No files uploaded'
+            });
         }
-    });
+
+        const projectName = siteName || 'site-' + Date.now();
+        const result = await deployFilesToNetlify(files, projectName);
+
+        res.json({
+            success: true,
+            message: '✅ Files uploaded and deployed!',
+            siteName: projectName,
+            url: result.url,
+            liveUrl: result.url,
+            provider: result.provider
+        });
+
+    } catch (error) {
+        console.error('Upload error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Upload failed'
+        });
+    }
 });
 
 // ============================================================
@@ -335,19 +356,6 @@ app.get('/api/deploy', (req, res) => {
             file_upload: true
         },
         timestamp: new Date().toISOString()
-    });
-});
-
-// ============================================================
-// STATUS CHECK
-// ============================================================
-app.get('/api/deploy/:siteName/status', (req, res) => {
-    const { siteName } = req.params;
-    res.json({
-        success: true,
-        status: 'active',
-        url: `https://${siteName}.netlify.app`,
-        provider: 'unknown'
     });
 });
 
