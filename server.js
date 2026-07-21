@@ -1,4 +1,4 @@
-// server.js - DARK DEV OFC Full API (Fixed)
+// server.js - DARK DEV OFC (Netlify Only)
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -18,13 +18,14 @@ app.use(express.static('.'));
 // File upload setup
 const upload = multer({ 
     dest: 'uploads/',
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+    limits: { fileSize: 50 * 1024 * 1024 }
 });
 
 console.log('🔥 DARK DEV OFC API Starting...');
+console.log('📦 Provider: Netlify Only');
 
 // ============================================================
-// NETLIFY DEPLOY - FIXED
+// NETLIFY DEPLOY
 // ============================================================
 async function deployToNetlify(repo, branch, siteName) {
     const netlifyToken = process.env.NETLIFY_TOKEN;
@@ -59,43 +60,7 @@ async function deployToNetlify(repo, branch, siteName) {
 }
 
 // ============================================================
-// GITHUB PAGES DEPLOY - FIXED
-// ============================================================
-async function deployToGitHubPages(repo, branch, siteName) {
-    const githubToken = process.env.GITHUB_TOKEN;
-    if (!githubToken) throw new Error('GitHub token not configured');
-
-    const deployUrl = `https://api.github.com/repos/${repo}/deployments`;
-    const response = await fetch(deployUrl, {
-        method: 'POST',
-        headers: {
-            'Authorization': `token ${githubToken}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/vnd.github.v3+json'
-        },
-        body: JSON.stringify({
-            ref: branch || 'main',
-            environment: 'production',
-            auto_merge: true
-        })
-    });
-
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`GitHub Pages: ${error}`);
-    }
-
-    const data = await response.json();
-    return {
-        success: true,
-        url: `https://${repo.split('/')[0]}.github.io/${repo.split('/')[1]}`,
-        provider: 'github-pages',
-        deploymentId: data.id
-    };
-}
-
-// ============================================================
-// FILE UPLOAD DEPLOY - FIXED
+// FILE UPLOAD DEPLOY
 // ============================================================
 async function deployFilesToNetlify(files, siteName) {
     const netlifyToken = process.env.NETLIFY_TOKEN;
@@ -103,7 +68,7 @@ async function deployFilesToNetlify(files, siteName) {
 
     console.log(`📁 Uploading ${files.length} files to Netlify...`);
 
-    // Create a temporary directory
+    // Create temp directory
     const tempDir = path.join(__dirname, 'temp', siteName);
     if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
@@ -157,7 +122,7 @@ async function deployFilesToNetlify(files, siteName) {
 }
 
 // ============================================================
-// DEPLOY API - FIXED
+// DEPLOY API
 // ============================================================
 app.post('/api/deploy', upload.array('files'), async (req, res) => {
     console.log('📥 Deploy request received');
@@ -170,7 +135,7 @@ app.post('/api/deploy', upload.array('files'), async (req, res) => {
         // FILE UPLOAD DEPLOY
         // ============================================================
         if (files && files.length > 0) {
-            console.log(`📁 File upload deploy: ${files.length} files`);
+            console.log(`📁 File upload: ${files.length} files`);
             const projectName = siteName || 'site-' + Date.now();
             
             try {
@@ -181,7 +146,7 @@ app.post('/api/deploy', upload.array('files'), async (req, res) => {
                     siteName: projectName,
                     url: result.url,
                     liveUrl: result.url,
-                    provider: result.provider,
+                    provider: 'netlify',
                     isFileUpload: true
                 });
             } catch (error) {
@@ -209,91 +174,49 @@ app.post('/api/deploy', upload.array('files'), async (req, res) => {
         console.log(`🔍 Checking repository: ${repoFull}`);
 
         // Check if repo exists (public)
-        try {
-            const checkRes = await fetch(`https://api.github.com/repos/${repoFull}`, {
-                headers: {
-                    'User-Agent': 'DARK-DEV-OFC-Deploy'
-                }
-            });
+        const checkRes = await fetch(`https://api.github.com/repos/${repoFull}`, {
+            headers: { 'User-Agent': 'DARK-DEV-OFC-Deploy' }
+        });
 
-            if (!checkRes.ok) {
-                if (checkRes.status === 404) {
-                    return res.status(404).json({
-                        success: false,
-                        error: 'Repository not found. Make sure it is public and the URL is correct.',
-                        code: 'REPO_NOT_FOUND'
-                    });
-                }
-                if (checkRes.status === 403) {
-                    return res.status(403).json({
-                        success: false,
-                        error: 'GitHub API rate limit exceeded. Please try again later.',
-                        code: 'RATE_LIMIT'
-                    });
-                }
-                return res.status(checkRes.status).json({
+        if (!checkRes.ok) {
+            if (checkRes.status === 404) {
+                return res.status(404).json({
                     success: false,
-                    error: `GitHub API error: ${checkRes.status}`,
-                    code: 'GITHUB_API_ERROR'
+                    error: 'Repository not found. Make sure it is public.',
+                    code: 'REPO_NOT_FOUND'
                 });
             }
-
-            const repoData = await checkRes.json();
-            console.log(`✅ Repository found: ${repoData.full_name}`);
-
-        } catch (githubError) {
-            console.error('GitHub check error:', githubError);
-            return res.status(500).json({
+            return res.status(checkRes.status).json({
                 success: false,
-                error: 'Failed to check repository: ' + githubError.message,
-                code: 'GITHUB_CHECK_FAILED'
+                error: `GitHub API error: ${checkRes.status}`,
+                code: 'GITHUB_API_ERROR'
             });
         }
 
-        // ============================================================
-        // TRY NETLIFY FIRST
-        // ============================================================
-        let result = null;
-        let error = null;
+        const repoData = await checkRes.json();
+        console.log(`✅ Repository found: ${repoData.full_name}`);
 
+        // ============================================================
+        // DEPLOY TO NETLIFY
+        // ============================================================
         try {
-            result = await deployToNetlify(repoFull, branch, projectName);
-            console.log(`✅ Netlify: ${result.url}`);
-        } catch (err) {
-            error = err.message;
-            console.log(`❌ Netlify failed: ${error}`);
-        }
-
-        // ============================================================
-        // FALLBACK TO GITHUB PAGES
-        // ============================================================
-        if (!result) {
-            try {
-                result = await deployToGitHubPages(repoFull, branch, projectName);
-                console.log(`✅ GitHub Pages: ${result.url}`);
-            } catch (err) {
-                error = err.message;
-                console.log(`❌ GitHub Pages failed: ${error}`);
-            }
-        }
-
-        // ============================================================
-        // RETURN RESULT
-        // ============================================================
-        if (result) {
+            const result = await deployToNetlify(repoFull, branch, projectName);
+            console.log(`✅ Netlify deploy successful: ${result.url}`);
+            
             return res.json({
                 success: true,
-                message: `✅ Deployed to ${result.provider}!`,
+                message: '✅ Deployed to Netlify successfully!',
                 siteName: projectName,
                 url: result.url,
                 liveUrl: result.url,
-                provider: result.provider
+                provider: 'netlify'
             });
-        } else {
+        } catch (error) {
+            console.error('❌ Netlify deploy failed:', error);
             return res.status(500).json({
                 success: false,
-                error: `All providers failed: ${error || 'Unknown error'}`,
-                code: 'ALL_PROVIDERS_FAILED'
+                error: error.message || 'Netlify deployment failed',
+                code: 'NETLIFY_FAILED'
             });
         }
 
@@ -308,7 +231,7 @@ app.post('/api/deploy', upload.array('files'), async (req, res) => {
 });
 
 // ============================================================
-// FILE UPLOAD ENDPOINT (Alternative)
+// UPLOAD ENDPOINT
 // ============================================================
 app.post('/api/upload', upload.array('files'), async (req, res) => {
     try {
@@ -327,11 +250,12 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
 
         res.json({
             success: true,
-            message: '✅ Files uploaded and deployed!',
+            message: '✅ Files uploaded and deployed to Netlify!',
             siteName: projectName,
             url: result.url,
             liveUrl: result.url,
-            provider: result.provider
+            provider: 'netlify',
+            isFileUpload: true
         });
 
     } catch (error) {
@@ -350,10 +274,9 @@ app.get('/api/deploy', (req, res) => {
     res.json({
         success: true,
         message: '✅ API is running!',
-        providers: {
-            netlify: !!process.env.NETLIFY_TOKEN,
-            github_pages: !!process.env.GITHUB_TOKEN,
-            file_upload: true
+        provider: 'netlify',
+        status: {
+            netlify: !!process.env.NETLIFY_TOKEN ? '✅ Configured' : '❌ Not configured'
         },
         timestamp: new Date().toISOString()
     });
@@ -366,8 +289,7 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log('═'.repeat(50));
     console.log('✅ DARK DEV OFC API Running');
     console.log(`📡 Port: ${PORT}`);
-    console.log(`📝 Netlify: ${process.env.NETLIFY_TOKEN ? '✅' : '❌'}`);
-    console.log(`📝 GitHub Pages: ${process.env.GITHUB_TOKEN ? '✅' : '❌'}`);
-    console.log(`📁 File Upload: ✅ Enabled`);
+    console.log(`📦 Provider: Netlify`);
+    console.log(`📝 Netlify: ${process.env.NETLIFY_TOKEN ? '✅ Configured' : '❌ Not configured'}`);
     console.log('═'.repeat(50));
 });
